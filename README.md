@@ -2,7 +2,31 @@
 
 An event-driven hybrid REST and GraphQL API gateway built on a Raspberry Pi 5. This edge device processes local hardware telemetry and conditionally syncs critical threshold alerts to an AWS Serverless backend (API Gateway, Lambda, DynamoDB). It features a local Model Context Protocol (MCP) server designed to allow LLMs to natively troubleshoot API health and cloud synchronization.
 
-![Architecture Diagram](./assets/architecture.png)
+graph LR
+        subgraph Mac ["Local Mac"]
+            Claude["Claude Desktop"]
+        end
+
+        subgraph Edge ["Raspberry Pi 5 (Edge)"]
+            MCP["FastMCP Server"]
+            REST["FastAPI (REST)"]
+            GQL["Strawberry (GraphQL)"]
+        end
+
+        subgraph AWS ["AWS Cloud (Serverless)"]
+            APIGW["API Gateway"]
+            Lambda["AWS Lambda"]
+            DDB[(DynamoDB)]
+        end
+
+        %% Data Flow & Diagnostics
+        Claude <-->|SSH / stdio| MCP
+        MCP -->|Health Ping| REST
+        MCP -.->|Verify Cloud Record| DDB
+        REST -->|High Temp Alert| APIGW
+        GQL --- REST
+        APIGW --> Lambda
+        Lambda --> DDB
 
 ## 🛠 Tech Stack
 * **Edge Hardware:** Raspberry Pi 5, Raspberry Pi OS (ARM64)
