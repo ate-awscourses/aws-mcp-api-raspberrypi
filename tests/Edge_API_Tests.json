@@ -1,0 +1,177 @@
+{
+  "info": {
+    "_postman_id": "71fba638-4e92-44ad-8c55-761c5c72004c",
+    "name": "Edge-API & MCP Telemetry Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "46871685",
+    "_collection_link": "https://go.postman.co/collection/46871685-71fba638-4e92-44ad-8c55-761c5c72004c?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Health (Valid)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\npm.test(\"Response indicates healthy status\", function () {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.status).to.eql(\"healthy\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://192.168.1.212:8000/api/v1/health",
+          "protocol": "http",
+          "host": [
+            "192",
+            "168",
+            "1",
+            "212"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Health (429 Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 429 Too Many Requests\", function () {\n    pm.response.to.have.status(429);\n});\npm.test(\"Retry-After header is present\", function () {\n    pm.response.to.have.header(\"Retry-After\");\n    pm.expect(pm.response.headers.get(\"Retry-After\")).to.eql(\"60\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://192.168.1.212:8000/api/v1/health?simulate_error=429",
+          "protocol": "http",
+          "host": [
+            "192",
+            "168",
+            "1",
+            "212"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "health"
+          ],
+          "query": [
+            {
+              "key": "simulate_error",
+              "value": "429"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Telemetry (High Temp Trigger)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\npm.test(\"AWS Sync was successfully triggered\", function () {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.aws_sync).to.include(\"synced_to_dynamodb\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"device_id\": \"pi-5-alpha\",\n    \"cpu_temp\": 85.5,\n    \"memory_usage\": 60.2\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://192.168.1.212:8000/api/v1/telemetry",
+          "protocol": "http",
+          "host": [
+            "192",
+            "168",
+            "1",
+            "212"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "telemetry"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GraphQL (Fetch Temp)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"GraphQL query successful\", function () {\n    pm.response.to.have.status(200);\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data).to.have.property(\"cpuTemp\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query {\n    cpuTemp\n}\n",
+            "variables": ""
+          }
+        },
+        "url": {
+          "raw": "http://192.168.1.212:8000/graphql",
+          "protocol": "http",
+          "host": [
+            "192",
+            "168",
+            "1",
+            "212"
+          ],
+          "port": "8000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": ""
+    }
+  ]
+}
